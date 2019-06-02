@@ -166,6 +166,9 @@ def index():
                         sameshit=True
                         print("same shit")
                         progress[login]=0
+                        p["active"]=False
+                        with open('db.json', 'w') as outfile:
+                            json.dump(db, outfile)
                         return render_template('index.html')
     return """<html><body>Please follow <a href="http://lmgtfy.com/?q=why+am+i+so+stupid%3F">this link</a>.</body></html>"""
 
