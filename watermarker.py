@@ -93,7 +93,7 @@ class VideoCamera(object):
         ret, jpeg = cv2.imencode('.jpg', output)
         cur+=1
 
-        while time.time()<=t+1/fps+0.1:
+        while time.time()<=t+1/fps:
             time.sleep(0.0001)
         return jpeg.tobytes()
 
