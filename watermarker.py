@@ -1,5 +1,5 @@
 import random
-
+import random as r
 import cv2
 import sys
 import time
@@ -10,6 +10,7 @@ from flask import request
 import json
 
 sameshit=False
+samesound=False
 dbpath="db.json"
 progress=dict()
 db="";
@@ -108,7 +109,13 @@ class VideoCamera(object):
         alpha2 = 0.5
         cv2.addWeighted(overlay, alpha2, output, 1 - alpha2,
                         0, output)
-
+        #r.seed(a=1, version=2)
+        #pss = 0
+        #for i in range(0, 640):
+        #    for j in range(0, 480):
+        #        if (x[pss]==1):
+        #            pss += 1
+        #            output[j,i]=(255,255,255)
         ret, jpeg = cv2.imencode('.jpg', output)
         #cur+=1
         progress[lgg]=cur/len
@@ -123,7 +130,7 @@ app = Flask(__name__,template_folder='.')
 
 @app.route('/audio')
 def audio():
-    global login
+    global login,samesound
     lgg=login
     # start Recording
     def sound():
@@ -141,17 +148,26 @@ def audio():
                     time.sleep(0.001)
                 #loss=min(step-1,(cur/len-curs/lens)*1000000)
                 #print((str)(progress[lgg])+" --"+(str)(lgg))
-    return Response(sound(), mimetype="audio/x-wav")
+    if samesound:
+        samesound=False
+        return Response(sound(), mimetype="audio/x-wav")
+    else:
+        print("not same sound")
+        return Response("nope", mimetype="text/plain")
+
 @app.route('/', methods=['GET','POST'])
 def index():
     with open(dbpath) as json_file:
         db = json.load(json_file)
-    global watmark,login,permkey,sameshit,progress
+    global watmark,login,permkey,sameshit,progress,samesound
     login=request.args.get("login")
     permkey=request.args.get("permit_key")
     for p in db['permits']:
         if p['login'] == login:
             print("same login")
+            if not p['active'] == True:
+                if p['permit_key'] == permkey:
+                    print("permission lost")
             if p['active'] == True:
                 print("active")
                 if p['permit_key'] == permkey:
@@ -164,6 +180,7 @@ def index():
                         #print(permkey)
                         watmark = str(request.args.get("login")) + " " + str(round(time.time(),10))
                         sameshit=True
+                        samesound=True
                         print("same shit")
                         progress[login]=0
                         p["active"]=False
