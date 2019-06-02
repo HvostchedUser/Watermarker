@@ -9,6 +9,7 @@ import wave
 from flask import request
 import json
 
+
 dbpath="db.json"
 
 db="";
@@ -82,7 +83,7 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self,watmarkk):
+    def get_frame(self,watmarkk,lgg):
         t=time.time()
         global cur
         global len
@@ -94,10 +95,19 @@ class VideoCamera(object):
         overlay = image.copy()
         output = image.copy()
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(overlay,(watmarkk),(random.randint(0, 600),random.randint(0, 460)), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-        alpha=0.3
+        cv2.putText(overlay,(watmarkk),(random.randint(0, 550),random.randint(0, 460)), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        alpha=0.1
         cv2.addWeighted(overlay, alpha, output, 1 - alpha,
                         0, output)
+        #output = image.copy()
+        overlay=output.copy()
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(overlay, ("specially for "+lgg), (10, 20), font, 0.5, (255, 255, 255),
+                    1, cv2.LINE_AA)
+        alpha2 = 0.5
+        cv2.addWeighted(overlay, alpha2, output, 1 - alpha2,
+                        0, output)
+
         ret, jpeg = cv2.imencode('.jpg', output)
         cur+=1
 
@@ -156,8 +166,9 @@ def index():
 
 def gen(camera):
     wma=watmark
+    lgg=login
     while True:
-        frame = camera.get_frame(wma)
+        frame = camera.get_frame(wma,lgg)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
