@@ -9,8 +9,10 @@ import wave
 from flask import request
 import json
 
+dbpath="db.json"
+
 db="";
-with open('db.json') as json_file:
+with open(dbpath) as json_file:
     db = json.load(json_file)
 command = "ffmpeg -i input.mp4 -ab 160k -ac 2 -ar 44100 -vn input.wav"
 
@@ -129,6 +131,8 @@ def audio():
     return Response(sound(), mimetype="audio/x-wav")
 @app.route('/', methods=['GET','POST'])
 def index():
+    with open(dbpath) as json_file:
+        db = json.load(json_file)
     global watmark,login,permkey
     login=request.args.get("login")
     permkey=request.args.get("permit_key")
