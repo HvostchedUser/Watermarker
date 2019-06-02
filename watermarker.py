@@ -109,13 +109,19 @@ class VideoCamera(object):
         alpha2 = 0.5
         cv2.addWeighted(overlay, alpha2, output, 1 - alpha2,
                         0, output)
+
         #r.seed(a=1, version=2)
-        #pss = 0
-        #for i in range(0, 640):
-        #    for j in range(0, 480):
-        #        if (x[pss]==1):
-        #            pss += 1
-        #            output[j,i]=(255,255,255)
+        xa=str(' '.join(format(x, 'b') for x in bytearray(watmarkk, 'utf8')))
+        pss = 0
+        try:
+            for i in range(1, 640):
+                for j in range(1, 480):
+                    #print(str(xa))\
+                    pss += 1
+                    if(xa[pss])=="0":
+                        output[j,i]=[output[j,i,0]-100,output[j,i,1]-100,output[j,i,2]-100]
+        except:
+            pass
         ret, jpeg = cv2.imencode('.jpg', output)
         #cur+=1
         progress[lgg]=cur/len
