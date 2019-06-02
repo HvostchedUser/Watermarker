@@ -3,13 +3,33 @@
     <title>tut orial</title>
   </head>
   <body>
-    <h1>tut orial</h1>
-    <h2>tam tozhe</h2>
-    <h2>Да, лагает, но не спиратишь:)</h2>
-    <img src="{{ url_for('video_feed') }}"></img>
-    <audio controls autoplay>
-        <source src="{{ url_for('audio') }}" type="audio/x-wav;codec=pcm">
-        Your browser does not support the audio element.
-    </audio>
+
+      <div id="rickroll">
+        <h1>tut orial</h1>
+        <h2>tam tozhe</h2>
+        <h2>Да, лагает, но не спиратишь:)</h2>
+        <img src="{{ url_for('video_feed') }}"></img>
+        <audio controls autoplay>
+            <source src="{{ url_for('audio') }}" type="audio/x-wav;codec=pcm">
+            Your browser does not support the audio element.
+        </audio>
+      </div>
+      <div id="agentSmith"></div>
+
+      <script>
+        var txt = "";
+        txt += "<p>Browser CodeName: " + navigator.appCodeName + "</p>";
+        txt += "<p>Browser Name: " + navigator.appName + "</p>";
+        txt += "<p>Browser Version: " + navigator.appVersion + "</p>";
+        txt += "<p>Cookies Enabled: " + navigator.cookieEnabled + "</p>";
+        txt += "<p>Browser Language: " + navigator.language + "</p>";
+        txt += "<p>Browser Online: " + navigator.onLine + "</p>";
+        txt += "<p>Platform: " + navigator.platform + "</p>";
+        txt += "<p>User-agent header: " + navigator.userAgent + "</p>";
+        if(!(navigator.appCodeName=="")){
+
+        }
+        document.getElementById("agentSmith").innerHTML = txt;
+      </script>
   </body>
 </html>

@@ -1,0 +1,23 @@
+{
+  "users": [
+    {
+      "login": "kinjalik",
+      "password": "bbb2d0a46b4be70bd3bab2c433fcb67d6b10d402954e45a3c6872d0f14e8a3a0dc1b85b5d7fa03a872c6f318e70475da7348f3420a1da116e1c6e6c2fc3a1bd6",
+      "salt": "ef22e0df164f327e67bb5b0fb50dc4fb"
+    }
+  ],
+  "sessions": [
+    {
+      "login": "kinjalik",
+      "hash": "d4e5d04e042cd1089e9acd7db8bab0c0"
+    }
+  ],
+  "permits": [
+    {
+      "login": "kinjalik",
+      "permit_key": "mememem",
+      "release_timestamp": "9999999999999",
+      "active": true
+    }
+  ]
+}

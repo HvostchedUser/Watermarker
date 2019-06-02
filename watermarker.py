@@ -6,7 +6,12 @@ import time
 import subprocess
 import os
 import wave
+from flask import request
+import json
 
+db="";
+with open('db.json') as json_file:
+    db = json.load(json_file)
 command = "ffmpeg -i input.mp4 -ab 160k -ac 2 -ar 44100 -vn input.wav"
 
 if not os.path.isfile('input.wav'):
@@ -15,8 +20,9 @@ if not os.path.isfile('input.wav'):
 wave_file = wave.open('input.wav', 'rb')
 
 loss=0
-
-
+login="";
+permkey=""
+watmark="nothing"
 
 step=1024*1
 cap = cv2.VideoCapture("input.mp4")
@@ -74,7 +80,7 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self):
+    def get_frame(self,watmarkk):
         t=time.time()
         global cur
         global len
@@ -86,8 +92,8 @@ class VideoCamera(object):
         overlay = image.copy()
         output = image.copy()
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(overlay,(sys.argv[1]),(random.randint(0, 600),random.randint(0, 460)), font, 0.5,(255,255,255),1,cv2.LINE_AA)
-        alpha=0.5
+        cv2.putText(overlay,(watmarkk),(random.randint(0, 600),random.randint(0, 460)), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+        alpha=0.3
         cv2.addWeighted(overlay, alpha, output, 1 - alpha,
                         0, output)
         ret, jpeg = cv2.imencode('.jpg', output)
@@ -121,20 +127,41 @@ def audio():
                 #loss=min(step-1,(cur/len-curs/lens)*1000000)
                 #print(loss)
     return Response(sound(), mimetype="audio/x-wav")
-@app.route('/')
+@app.route('/', methods=['GET','POST'])
 def index():
-    return render_template('index.html')
+    global watmark,login,permkey
+    login=request.args.get("login")
+    permkey=request.args.get("permit_key")
+    for p in db['permits']:
+        if p['login'] == login:
+            print("same login")
+            if p['active'] == True:
+                print("active")
+                if p['permit_key'] == permkey:
+                    print("same key")
+                    print(time.time()*1000)
+                    print(int(p['release_timestamp']))
+                    if int(p['release_timestamp'])+30000>=time.time()*1000:
+                        print("same time")
+                        #print(login)
+                        #print(permkey)
+                        watmark = str(request.args.get("login")) + " " + str(round(time.time(),10))
+                        return render_template('index.html')
+    return """<html><body>Please follow <a href="http://lmgtfy.com/?q=why+am+i+so+stupid%3F">this link</a>.</body></html>"""
+
 
 def gen(camera):
+    wma=watmark
     while True:
-        frame = camera.get_frame()
+        frame = camera.get_frame(wma)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @app.route('/video_feed')
 def video_feed():
+    time.sleep(0.5)
     return Response(gen(VideoCamera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)
