@@ -8,6 +8,7 @@ import os
 import wave
 from flask import request
 import json
+import pyqrcode
 
 sameshit=False
 samesound=False
@@ -32,24 +33,24 @@ watmark="nothing"
 step=10#1024
 cap = cv2.VideoCapture("input.mp4")
 fps=cap.get(cv2.CAP_PROP_FPS)
-len = (cap.get(cv2.CAP_PROP_FRAME_COUNT))
+leng = (cap.get(cv2.CAP_PROP_FRAME_COUNT))
 cur=0
 
 
-lens=0
+lengs=0
 with open("input.wav", "rb") as fwav:
     data = fwav.read(step)
     while data:
-        lens+=1
+        lengs+=1
         data = fwav.read(step)
 #with wave.open('input.wav', 'rb') as fwav:
-#    lens=fwav.getnframes()/step
-#    #print(lens)
+#    lengs=fwav.getnframes()/step
+#    #print(lengs)
 curs=0
 
 
-#print(len)
-#print(lens)
+#print(leng)
+#print(lengs)
 
 
 def genHeader(sampleRate, bitsPerSample, channels, samples):
@@ -58,7 +59,7 @@ def genHeader(sampleRate, bitsPerSample, channels, samples):
     o += (datasize + 36).to_bytes(4,'little')                               # (4byte) File size in bytes excluding this and RIFF marker
     o += bytes("WAVE",'ascii')                                              # (4byte) File type
     o += bytes("fmt ",'ascii')                                              # (4byte) Format Chunk Marker
-    o += (16).to_bytes(4,'little')                                          # (4byte) Length of above format data
+    o += (16).to_bytes(4,'little')                                          # (4byte) lenggth of above format data
     o += (1).to_bytes(2,'little')                                           # (2byte) Format type (1 - PCM)
     o += (channels).to_bytes(2,'little')                                    # (2byte)
     o += (sampleRate).to_bytes(4,'little')                                  # (4byte)
@@ -72,7 +73,7 @@ def genHeader(sampleRate, bitsPerSample, channels, samples):
 
 class VideoCamera(object):
     def __init__(self):
-        global cur,len
+        global cur,leng
         cur=0
         # Using OpenCV to capture from device 0. If you have trouble capturing
         # from a webcam, comment the line below out and use a video file
@@ -85,10 +86,10 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self,watmarkk,lgg,cur):
+    def get_frame(self,watmarkk,lgg,cur,cde):
         t=time.time()
         global progress
-        global len
+        global leng
         success, image = self.video.read()
         # We are using Motion JPEG, but OpenCV defaults to capture raw images,
         # so we must encode it into JPEG in order to correctly display the
@@ -113,6 +114,18 @@ class VideoCamera(object):
         #r.seed(a=1, version=2)
         xa=str(' '.join(format(x, 'b') for x in bytearray(watmarkk, 'utf8')))
         pss = 0
+        jj=0
+        ii=0;
+        for i in range(len(cde)):
+            ii+=1
+            if(cde[i]=="\n"):
+                jj+=1
+                ii=0
+            if(cde[i]=="0"):
+                output[479-jj, 639-ii] = [255,255,255]
+            else:
+                output[479-jj, 639-ii] = [0,0,0]
+
         try:
             for i in range(1, 640):
                 for j in range(1, 480):
@@ -124,7 +137,7 @@ class VideoCamera(object):
             pass
         ret, jpeg = cv2.imencode('.jpg', output)
         #cur+=1
-        progress[lgg]=cur/len
+        progress[lgg]=cur/leng
         while time.time()<t+1/fps:
             time.sleep(0.0001)
         return jpeg.tobytes()
@@ -140,7 +153,7 @@ def audio():
     lgg=login
     # start Recording
     def sound():
-        global lens
+        global lengs
         header=genHeader(44100, 32, 1, 200000)
         curs=0
         with open("input.wav", "rb") as fwav:
@@ -150,9 +163,9 @@ def audio():
                 data = fwav.read(int(step))
                 #fwav.read(int(loss))
                 curs+=1
-                while curs/lens >= progress[lgg]:
+                while curs/lengs >= progress[lgg]:
                     time.sleep(0.001)
-                #loss=min(step-1,(cur/len-curs/lens)*1000000)
+                #loss=min(step-1,(cur/leng-curs/lengs)*1000000)
                 #print((str)(progress[lgg])+" --"+(str)(lgg))
     if samesound:
         samesound=False
@@ -200,9 +213,11 @@ def gen(camera):
     if not(request):
         wma=watmark
         lgg=login
+        urlcode = pyqrcode.create(lgg)
+        cde=urlcode.text()
         cur=0
         while True:
-            frame = camera.get_frame(wma,lgg,cur)
+            frame = camera.get_frame(wma,lgg,cur,cde)
             cur+=1
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
