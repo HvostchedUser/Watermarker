@@ -18,6 +18,12 @@
       "permit_key": "mememem",
       "release_timestamp": "9999999999999",
       "active": true
+    },
+    {
+      "login": "lalka",
+      "permit_key": "qwert",
+      "release_timestamp": "9999999999999",
+      "active": true
     }
   ]
 }

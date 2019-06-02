@@ -11,7 +11,7 @@ import json
 
 sameshit=False
 dbpath="db.json"
-
+progress=dict()
 db="";
 with open(dbpath) as json_file:
     db = json.load(json_file)
@@ -27,7 +27,7 @@ login="";
 permkey=""
 watmark="nothing"
 
-step=1024*1
+step=10#1024
 cap = cv2.VideoCapture("input.mp4")
 fps=cap.get(cv2.CAP_PROP_FPS)
 len = (cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -83,9 +83,9 @@ class VideoCamera(object):
     def __del__(self):
         self.video.release()
 
-    def get_frame(self,watmarkk,lgg):
+    def get_frame(self,watmarkk,lgg,cur):
         t=time.time()
-        global cur
+        global progress
         global len
         success, image = self.video.read()
         # We are using Motion JPEG, but OpenCV defaults to capture raw images,
@@ -109,9 +109,9 @@ class VideoCamera(object):
                         0, output)
 
         ret, jpeg = cv2.imencode('.jpg', output)
-        cur+=1
-
-        while time.time()<=t+1/fps:
+        #cur+=1
+        progress[lgg]=cur/len
+        while time.time()<t+1/fps:
             time.sleep(0.0001)
         return jpeg.tobytes()
 
@@ -122,9 +122,11 @@ app = Flask(__name__,template_folder='.')
 
 @app.route('/audio')
 def audio():
+    global login
+    lgg=login
     # start Recording
     def sound():
-        global curs,lens,loss
+        global lens
         header=genHeader(44100, 32, 1, 200000)
         curs=0
         with open("input.wav", "rb") as fwav:
@@ -134,16 +136,16 @@ def audio():
                 data = fwav.read(int(step))
                 #fwav.read(int(loss))
                 curs+=1
-                while curs/lens >= cur/len:
+                while curs/lens >= progress[lgg]:
                     time.sleep(0.001)
                 #loss=min(step-1,(cur/len-curs/lens)*1000000)
-                #print(loss)
+                #print((str)(progress[lgg])+" --"+(str)(lgg))
     return Response(sound(), mimetype="audio/x-wav")
 @app.route('/', methods=['GET','POST'])
 def index():
     with open(dbpath) as json_file:
         db = json.load(json_file)
-    global watmark,login,permkey,sameshit
+    global watmark,login,permkey,sameshit,progress
     login=request.args.get("login")
     permkey=request.args.get("permit_key")
     for p in db['permits']:
@@ -161,6 +163,8 @@ def index():
                         #print(permkey)
                         watmark = str(request.args.get("login")) + " " + str(round(time.time(),10))
                         sameshit=True
+                        print("same shit")
+                        progress[login]=0
                         return render_template('index.html')
     return """<html><body>Please follow <a href="http://lmgtfy.com/?q=why+am+i+so+stupid%3F">this link</a>.</body></html>"""
 
@@ -169,8 +173,10 @@ def gen(camera):
     if not(request):
         wma=watmark
         lgg=login
+        cur=0
         while True:
-            frame = camera.get_frame(wma,lgg)
+            frame = camera.get_frame(wma,lgg,cur)
+            cur+=1
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
