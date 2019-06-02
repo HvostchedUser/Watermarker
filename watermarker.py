@@ -9,7 +9,7 @@ import wave
 from flask import request
 import json
 
-
+sameshit=False
 dbpath="db.json"
 
 db="";
@@ -143,7 +143,7 @@ def audio():
 def index():
     with open(dbpath) as json_file:
         db = json.load(json_file)
-    global watmark,login,permkey
+    global watmark,login,permkey,sameshit
     login=request.args.get("login")
     permkey=request.args.get("permit_key")
     for p in db['permits']:
@@ -160,23 +160,31 @@ def index():
                         #print(login)
                         #print(permkey)
                         watmark = str(request.args.get("login")) + " " + str(round(time.time(),10))
+                        sameshit=True
                         return render_template('index.html')
     return """<html><body>Please follow <a href="http://lmgtfy.com/?q=why+am+i+so+stupid%3F">this link</a>.</body></html>"""
 
 
 def gen(camera):
-    wma=watmark
-    lgg=login
-    while True:
-        frame = camera.get_frame(wma,lgg)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
+    if not(request):
+        wma=watmark
+        lgg=login
+        while True:
+            frame = camera.get_frame(wma,lgg)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 @app.route('/video_feed')
 def video_feed():
-    time.sleep(0.5)
-    return Response(gen(VideoCamera()),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    global sameshit
+    if sameshit:
+        sameshit=False
+        print(request)
+        time.sleep(0.5)
+        return Response(gen(VideoCamera()),
+                        mimetype='multipart/x-mixed-replace; boundary=frame')
+    else:
+        return """<html><body>Please follow <a href="http://lmgtfy.com/?q=why+am+i+so+stupid%3F">this link</a>.</body></html>"""
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False)
