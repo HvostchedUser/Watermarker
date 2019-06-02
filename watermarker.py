@@ -37,8 +37,8 @@ with open("input.wav", "rb") as fwav:
 curs=0
 
 
-print(len)
-print(lens)
+#print(len)
+#print(lens)
 
 
 def genHeader(sampleRate, bitsPerSample, channels, samples):
@@ -119,7 +119,7 @@ def audio():
                 while curs/lens >= cur/len:
                     time.sleep(0.001)
                 #loss=min(step-1,(cur/len-curs/lens)*1000000)
-                print(loss)
+                #print(loss)
     return Response(sound(), mimetype="audio/x-wav")
 @app.route('/')
 def index():
