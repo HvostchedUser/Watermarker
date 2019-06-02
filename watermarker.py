@@ -15,10 +15,11 @@ progress=dict()
 db="";
 with open(dbpath) as json_file:
     db = json.load(json_file)
-command = "ffmpeg -i input.mp4 -ab 160k -ac 2 -ar 44100 -vn input.wav"
+command = "ffmpeg -i input.mp4 -ab 160k -ac 2 -ar 44100 -vn input.wav -y"
 
-if not os.path.isfile('input.wav'):
-    subprocess.call(command, shell=True)
+#if not os.path.isfile('input.wav'):
+#    subprocess.call(command, shell=True)
+subprocess.call(command, shell=True)
 
 wave_file = wave.open('input.wav', 'rb')
 
